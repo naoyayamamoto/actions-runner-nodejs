@@ -1,4 +1,4 @@
-FROM summerwind/actions-runner:v2.303.0-ubuntu-20.04
+FROM summerwind/actions-runner:v2.303.0-ubuntu-20.04 AS runner
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -16,3 +16,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
     --no-install-recommends && \
     sudo npm install --global yarn && \
     sudo rm -rf /var/lib/apt/lists/*
+
+# DOWNLOAD dependencies
+FROM node:18 AS nodedep
+WORKDIR /usr/src/app
+COPY packages/package.json ./
+COPY packages/yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+# COPY cache
+FROM runner
+COPY --from=nodedep /usr/local/share/.cache/yarn/v6 /home/runner/.cache/yarn/v6
