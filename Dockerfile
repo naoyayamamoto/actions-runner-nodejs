@@ -18,12 +18,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
     sudo rm -rf /var/lib/apt/lists/*
 
 # DOWNLOAD dependencies
-FROM node:18 AS nodedep
-WORKDIR /usr/src/app
+FROM runner AS nodedep
+WORKDIR /home/runner
 COPY packages/package.json ./
 COPY packages/yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --ignore-scripts --silent --non-interactive --no-bin-links
 
 # COPY cache
 FROM runner
-COPY --from=nodedep /usr/local/share/.cache/yarn/v6 /home/runner/.cache/yarn/v6
+COPY --from=nodedep --chown=runner:runner /home/runner/.cache /home/runner/.cache
